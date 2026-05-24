@@ -2,199 +2,128 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
-import plotly.graph_objects as go
-from datetime import datetime, timedelta
 
-st.set_page_config(page_title="Dashboard ALEXPRESS/ROCKET", layout="wide", page_icon="🚀")
+st.set_page_config(layout='wide', page_title='Neon Cyberpunk Dashboard', page_icon='\U0001f52e')
 
-st.markdown("""
+st.markdown('''
 <style>
-/* Fundo geral */
-body, .stApp {
-    background-color: #050A0F !important;
-    color: #E6F1FF !important;
-    font-family: 'Segoe UI', sans-serif;
-}
-
-/* Containers */
-.block-container {
-    padding: 2rem 2.5rem;
-}
-
-/* Divisores neon */
-hr {
-    border: none;
-    height: 1px;
-    background: linear-gradient(90deg, #00E5FF, #007BFF, #00E5FF);
-    margin: 25px 0;
-}
-
-/* Sidebar */
-.css-1d391kg, .css-1lcbmhc {
-    background: #07131B !important;
-    border-right: 2px solid rgba(0,229,255,0.4);
-}
-
-/* Títulos */
-h1, h2, h3 {
-    color: #E6F1FF !important;
-    text-shadow: 0px 0px 15px rgba(0,229,255,0.7);
-}
-
-/* Cards Premium */
-.card {
-    background: rgba(10, 20, 30, 0.7);
-    border-radius: 14px;
-    padding: 20px;
-    margin: 12px 0;
-    border: 1px solid rgba(0,229,255,0.5);
-    box-shadow: 
-        0 0 15px rgba(0,229,255,0.25),
-        inset 0 0 10px rgba(0,229,255,0.2);
-}
-
-/* KPI Cards */
-.kpi {
-    background: rgba(15, 25, 35, 0.75);
-    border-radius: 14px;
-    padding: 15px;
-    text-align: center;
-    border: 1px solid rgba(0,229,255,0.7);
-    box-shadow: 0 0 15px rgba(0,229,255,0.35);
-}
-.kpi h3 {
-    color: #00E5FF;
-    font-size: 14px;
-    margin: 0;
-}
-.kpi .value {
-    font-size: 30px;
-    font-weight: bold;
-    margin-top: 10px;
-    color: #E6F1FF;
-    text-shadow: 0px 0px 15px rgba(0,229,255,0.6);
-}
-.kpi .sub {
-    font-size: 12px;
-    color: #8FAFCF;
-}
-
-/* DataFrame dark premium */
-.dataframe {
-    color: #E6F1FF !important;
-}
-
-/* Inputs / Selects */
-.stSelectbox, .stTextInput, .stNumberInput {
-    background-color: rgba(10, 20, 30, 0.6) !important;
-    color: #E6F1FF !important;
-}
-
-/* Plotly background fix */
-.js-plotly-plot {
-    background-color: transparent !important;
-}
+    .stApp { background: #0a0a2e; }
+    .css-18e3th9 { padding: 0 !important; }
+    .css-1d391kg { padding: 0 !important; }
+    .main .block-container { padding: 0.5rem !important; }
+    .kpi-card {
+        background: linear-gradient(135deg, #0d0d4a, #1a1a6e);
+        border: 1px solid #00ffff;
+        border-radius: 8px;
+        padding: 10px;
+        text-align: center;
+        box-shadow: 0 0 15px #00ffff33;
+    }
+    .kpi-value { font-size: 1.8em; font-weight: bold; color: #00ffff; }
+    .kpi-label { font-size: 0.8em; color: #88ffff; }
+    .chart-container {
+        background: #0d0d4a;
+        border: 1px solid #00ffff;
+        border-radius: 8px;
+        padding: 5px;
+        box-shadow: 0 0 10px #00ffff33;
+    }
+    .table-container {
+        background: #0d0d4a;
+        border: 1px solid #00ffff;
+        border-radius: 8px;
+        padding: 5px;
+        max-height: 300px;
+        overflow-y: auto;
+        box-shadow: 0 0 10px #00ffff33;
+    }
+    .stDataFrame { width: 100%; }
+    .stDataFrame thead tr th { background: #1a1a6e !important; color: #00ffff !important; }
+    .stDataFrame tbody tr:nth-child(even) { background: #0d0d4a; }
+    .stDataFrame tbody tr:nth-child(odd) { background: #0a0a3e; }
+    .stDataFrame tbody td { color: #ccffff; font-size: 0.9em; }
+    h1, h2, h3, h4, h5, h6 { color: #00ffff !important; }
+    .st-bb { color: #00ffff; }
+    .st-at { color: #00ffff; }
 </style>
-""", unsafe_allow_html=True)
+''', unsafe_allow_html=True)
 
-st.title("🚀 Dashboard Operacional ALEXPRESS / ROCKET")
-st.markdown("<hr>", unsafe_allow_html=True)
+np.random.seed(42)
+n = 100
+dates = pd.date_range(start='2024-01-01', periods=n, freq='D')
+fleet = np.random.randint(50, 200, size=n)
+maintenance_cost = np.random.uniform(1000, 5000, size=n)
+fuel_cost = np.random.uniform(500, 3000, size=n)
+billing = np.random.uniform(5000, 20000, size=n)
+efficiency = np.random.uniform(70, 100, size=n)
+utilization = np.random.uniform(60, 95, size=n)
 
-@st.cache_data
-def load_data():
-    np.random.seed(42)
-    dates_april = pd.date_range(start="2025-04-01", end="2025-04-30", freq="D")
-    dates_may = pd.date_range(start="2025-05-01", end="2025-05-31", freq="D")
-    all_dates = list(dates_april) + list(dates_may)
+df = pd.DataFrame({
+    'Date': dates,
+    'Fleet Size': fleet,
+    'Maintenance Cost': maintenance_cost,
+    'Fuel Cost': fuel_cost,
+    'Billing': billing,
+    'Efficiency (%)': efficiency,
+    'Utilization (%)': utilization
+})
 
-    tipos = ["Cartão", "Imposto", "Serviços", "Folha", "Manutenção", "Alimentação", "Transporte", "IPVA"]
-    data = []
+kpi1 = f'${df["Billing"].sum():,.0f}'
+kpi2 = f'{df["Fleet Size"].mean():.0f}'
+kpi3 = f'${df["Maintenance Cost"].mean():,.0f}'
+kpi4 = f'${df["Fuel Cost"].mean():,.0f}'
+kpi5 = f'{df["Efficiency (%)"].mean():.1f}%'
+kpi6 = f'{df["Utilization (%)"].mean():.1f}%'
 
-    for date in all_dates:
-        num_expenses = np.random.randint(1, 5)
-        for _ in range(num_expenses):
-            tipo = np.random.choice(tipos, p=[0.2, 0.15, 0.15, 0.2, 0.1, 0.1, 0.05, 0.05])
-            if tipo == "IPVA":
-                if np.random.rand() > 0.2:
-                    continue
-                valor = np.random.uniform(500, 2000)
-                categoria = "IPVA"
-            else:
-                if tipo == "Cartão": valor = np.random.uniform(50, 500)
-                elif tipo == "Imposto": valor = np.random.uniform(200, 3000)
-                elif tipo == "Serviços": valor = np.random.uniform(100, 1500)
-                elif tipo == "Folha": valor = np.random.uniform(1000, 5000)
-                elif tipo == "Manutenção": valor = np.random.uniform(100, 2000)
-                elif tipo == "Alimentação": valor = np.random.uniform(10, 200)
-                elif tipo == "Transporte": valor = np.random.uniform(20, 300)
-                else: valor = np.random.uniform(50, 1000)
-                categoria = np.random.choice(["PF", "PJ"], p=[0.6, 0.4])
-
-            rec = np.random.choice([True, False], p=[0.3, 0.7])
-            data.append({
-                "Data": date,
-                "Tipo": tipo,
-                "Valor": round(valor, 2),
-                "Categoria": categoria,
-                "Recorrente": "Sim" if rec else "Não",
-                "Descrição": f"{tipo} - {np.random.choice(['Padrão', 'Extra', 'Urgente'])}"
-            })
-
-    df = pd.DataFrame(data)
-    df["Mês"] = df["Data"].dt.month_name().str[:3]
-    df["Dia"] = df["Data"].dt.day
-    return df
-
-
-df = load_data()
-
-df_abril = df[df["Mês"] == "Apr"]
-df_maio = df[df["Mês"] == "May"]
-
-mes_atual = "Abril"
-df_mes = df_abril.copy()
-
-total_pf_abril = round(df_mes[df_mes["Categoria"] == "PF"]["Valor"].sum(), 2)
-total_pj_abril = round(df_mes[df_mes["Categoria"] == "PJ"]["Valor"].sum(), 2)
-media_dia = round(df_mes["Valor"].mean(), 2)
-maior_despesa = round(df_mes["Valor"].max(), 2)
-
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4, col5, col6 = st.columns(6)
 with col1:
-    st.markdown(f'<div class="kpi"><h3>Total PF</h3><div class="value">R$ {total_pf_abril:,.2f}</div><div class="sub">Abril</div></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="kpi-card"><div class="kpi-value">{kpi1}</div><div class="kpi-label">Total Billing</div></div>', unsafe_allow_html=True)
 with col2:
-    st.markdown(f'<div class="kpi"><h3>Total PJ</h3><div class="value">R$ {total_pj_abril:,.2f}</div><div class="sub">Abril</div></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="kpi-card"><div class="kpi-value">{kpi2}</div><div class="kpi-label">Avg Fleet Size</div></div>', unsafe_allow_html=True)
 with col3:
-    st.markdown(f'<div class="kpi"><h3>Média Diária</h3><div class="value">R$ {media_dia:,.2f}</div><div class="sub">Abril</div></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="kpi-card"><div class="kpi-value">{kpi3}</div><div class="kpi-label">Avg Maintenance</div></div>', unsafe_allow_html=True)
+with col4:
+    st.markdown(f'<div class="kpi-card"><div class="kpi-value">{kpi4}</div><div class="kpi-label">Avg Fuel Cost</div></div>', unsafe_allow_html=True)
+with col5:
+    st.markdown(f'<div class="kpi-card"><div class="kpi-value">{kpi5}</div><div class="kpi-label">Efficiency</div></div>', unsafe_allow_html=True)
+with col6:
+    st.markdown(f'<div class="kpi-card"><div class="kpi-value">{kpi6}</div><div class="kpi-label">Utilization</div></div>', unsafe_allow_html=True)
 
-st.markdown("<hr>", unsafe_allow_html=True)
+st.markdown('## \U0001f4ca Operational Overview')
+col1, col2 = st.columns(2)
+col3, col4 = st.columns(2)
 
+with col1:
+    fig1 = px.line(df, x='Date', y='Fleet Size', title='Fleet Size Over Time', template='plotly_dark')
+    fig1.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#00ffff', title_font_color='#00ffff', height=250, margin=dict(l=20, r=20, t=30, b=20))
+    fig1.update_traces(line_color='#00ffff')
+    st.plotly_chart(fig1, use_container_width=True)
+
+with col2:
+    fig2 = px.area(df, x='Date', y='Billing', title='Billing Revenue', template='plotly_dark')
+    fig2.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#00ffff', title_font_color='#00ffff', height=250, margin=dict(l=20, r=20, t=30, b=20))
+    fig2.update_traces(fillcolor='rgba(0,255,255,0.2)', line_color='#00ffff')
+    st.plotly_chart(fig2, use_container_width=True)
+
+with col3:
+    fig3 = px.bar(df, x='Date', y='Maintenance Cost', title='Maintenance Cost', template='plotly_dark')
+    fig3.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#00ffff', title_font_color='#00ffff', height=250, margin=dict(l=20, r=20, t=30, b=20))
+    fig3.update_traces(marker_color='#00ffff')
+    st.plotly_chart(fig3, use_container_width=True)
+
+with col4:
+    fig4 = px.scatter(df, x='Fuel Cost', y='Efficiency (%)', size='Utilization (%)', title='Fuel vs Efficiency', template='plotly_dark')
+    fig4.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#00ffff', title_font_color='#00ffff', height=250, margin=dict(l=20, r=20, t=30, b=20))
+    fig4.update_traces(marker=dict(color='#00ffff', line=dict(color='#00ffff', width=1)))
+    st.plotly_chart(fig4, use_container_width=True)
+
+st.markdown('## \U0001f4cb Detailed Data')
 col1, col2 = st.columns(2)
 with col1:
-    df_line = df_mes.groupby(["Dia", "Categoria"])["Valor"].sum().reset_index()
-    fig_line = px.line(df_line, x="Dia", y="Valor", color="Categoria", template="plotly_dark")
-    fig_line.update_layout(paper_bgcolor="#050A0F", plot_bgcolor="#07131B", font=dict(color="white"))
-    st.plotly_chart(fig_line, use_container_width=True)
-
+    st.markdown('<div class="table-container">', unsafe_allow_html=True)
+    st.dataframe(df[['Date', 'Fleet Size', 'Maintenance Cost', 'Fuel Cost']].head(10))
+    st.markdown('</div>', unsafe_allow_html=True)
 with col2:
-    df_donut = df_mes.groupby("Tipo")["Valor"].sum().reset_index()
-    fig_donut = px.pie(df_donut, values="Valor", names="Tipo", hole=0.5, template="plotly_dark")
-    fig_donut.update_layout(paper_bgcolor="#050A0F", font=dict(color="white"))
-    st.plotly_chart(fig_donut, use_container_width=True)
-
-st.markdown("<hr>", unsafe_allow_html=True)
-
-st.markdown("<h2>📊 Painel IPVA</h2>", unsafe_allow_html=True)
-df_ipva = df_mes[df_mes["Tipo"] == "IPVA"]
-
-if not df_ipva.empty:
-    col1, col2 = st.columns(2)
-    with col1:
-        total_ipva = round(df_ipva["Valor"].sum(), 2)
-        st.metric("Total IPVA Abril", f"R$ {total_ipva:,.2f}")
-    with col2:
-        fig_ipva = px.bar(df_ipva, x="Dia", y="Valor", template="plotly_dark")
-        fig_ipva.update_layout(paper_bgcolor="#050A0F", plot_bgcolor="#07131B", font=dict(color="white"))
-        st.plotly_chart(fig_ipva, use_container_width=True)
-else:
-    st.info("Nenhuma despesa IPVA em Abril.")
+    st.markdown('<div class="table-container">', unsafe_allow_html=True)
+    st.dataframe(df[['Date', 'Billing', 'Efficiency (%)', 'Utilization (%)']].head(10))
+    st.markdown('</div>', unsafe_allow_html=True)
