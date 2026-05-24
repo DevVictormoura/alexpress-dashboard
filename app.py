@@ -159,7 +159,7 @@ with row2_cols[0]:
     st.markdown("""<div class="section-card"><h3>📊 Vendas ao Longo do Tempo</h3>""", unsafe_allow_html=True)
     # Sample data
     df_time = pd.DataFrame({
-        'Date': pd.date_range(start='2024-01-01', periods=12, freq='M'),
+        'Date': pd.date_range(start='2024-01-01', periods=12, freq='ME'),
         'Sales': [120, 135, 150, 170, 160, 190, 210, 195, 220, 240, 230, 260]
     })
     fig1 = px.line(df_time, x='Date', y='Sales', title=None)
